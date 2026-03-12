@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الأجنة - كابتن</title>
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary-color: #2c3e50;
+            --lab1-color: #3498db;
+            --lab2-color: #9b59b6;
+            --bg-color: #f0f2f5;
+            --accent-color: #1abc9c;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-color); overflow: hidden; }
+
+        .sidebar { width: var(--sidebar-width); background: var(--primary-color); color: white; display: flex; flex-direction: column; padding: 20px 0; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
+        .sidebar h2 { text-align: center; font-size: 1.2rem; border-bottom: 1px solid #444; padding-bottom: 20px; margin-bottom: 10px; }
+        .sidebar-btn { background: none; border: none; color: #bdc3c7; padding: 18px 25px; text-align: right; cursor: pointer; width: 100%; transition: 0.3s; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .sidebar-btn:hover, .sidebar-btn.active { background: #34495e; color: white; border-right: 8px solid var(--accent-color); }
+
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
+        .page-section { display: none; animation: fadeIn 0.4s; }
+        .page-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .lab-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 25px; }
+        .btn-input { padding: 25px; font-size: 1.5rem; font-weight: bold; cursor: pointer; border-radius: 12px; border: 2px solid #eee; background: #fff; transition: 0.2s; }
+        .btn-lab1:hover { background: var(--lab1-color); color: white; transform: translateY(-3px); }
+        .btn-lab2:hover { background: var(--lab2-color); color: white; transform: translateY(-3px); }
+
+        .display-screen { display: flex; gap: 40px; justify-content: center; align-items: center; height: 60vh; }
+        .counter-box { flex: 1; background: white; padding: 50px; border-radius: 30px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 20px solid #ddd; }
+        .box-lab1 { border-top-color: var(--lab1-color); }
+        .box-lab2 { border-top-color: var(--lab2-color); }
+        .val { font-size: 15rem; font-weight: 900; line-height: 1; margin: 20px 0; }
+        
+        /* زر إيقاف التنبيه */
+        #stop-sound-btn { 
+            display: none; width: 100%; padding: 20px; background: #e74c3c; color: white; 
+            font-size: 2rem; font-weight: bold; border: none; border-radius: 15px; 
+            cursor: pointer; margin-top: 20px; animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 20px rgba(231, 76, 60, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+
+        .update-flash { animation: flash 0.6s ease-out; }
+        @keyframes flash {
+            50% { background: #fffde7; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>🏥 إدارة صالة 5</h2>
+        <button class="sidebar-btn active" onclick="showPage('lab1-ui', this)">🧪 بايلوجي 1</button>
+        <button class="sidebar-btn" onclick="showPage('lab2-ui', this)">🧪 بايلوجي 2</button>
+        <button class="sidebar-btn" onclick="showPage('hall-ui', this)">🖥️ شاشة العرض</button>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="lab1-ui" class="page-section active">
+            <div class="lab-card">
+                <h1 style="color: var(--lab1-color)">إدخال بايلوجي 1</h1>
+                <div class="grid">
+                    <script>
+                        for(let i=0; i<=10; i++) document.write(`<button class="btn-input btn-lab1" onclick="sendToHall(1, ${i})">${i}</button>`);
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <div id="lab2-ui" class="page-section">
+            <div class="lab-card">
+                <h1 style="color: var(--lab2-color)">إدخال بايلوجي 2</h1>
+                <div class="grid">
+                    <script>
+                        for(let i=0; i<=10; i++) document.write(`<button class="btn-input btn-lab2" onclick="sendToHall(2, ${i})">${i}</button>`);
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <div id="hall-ui" class="page-section">
+            <div class="display-screen">
+                <div id="card1" class="counter-box box-lab1">
+                    <div style="font-size: 2rem; font-weight: bold;">بايلوجي 1</div>
+                    <div id="res-lab1" class="val" style="color: var(--lab1-color)">0</div>
+                </div>
+
+                <div id="card2" class="counter-box box-lab2">
+                    <div style="font-size: 2rem; font-weight: bold;">بايلوجي 2</div>
+                    <div id="res-lab2" class="val" style="color: var(--lab2-color)">0</div>
+                </div>
+            </div>
+            
+            <button id="stop-sound-btn" onclick="stopAlertSound()">إيقاف صوت التنبيه 🔊</button>
+            <p style="text-align: center; color: #777; margin-top: 10px;">* اضغط على الشاشة مرة واحدة لتفعيل الصوت.</p>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let oscillator = null;
+        let isAlerting = false;
+
+        function showPage(id, btn) {
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+            if(id === 'hall-ui') updateDisplay();
+        }
+
+        // دالة تشغيل الصوت المستمر
+        function startAlertSound() {
+            if (isAlerting) return; 
+            isAlerting = true;
+            document.getElementById('stop-sound-btn').style.display = 'block';
+
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+            
+            // جعل الصوت يقطع (Beep... Beep...)
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            let now = audioCtx.currentTime;
+            for(let i=0; i<100; i++) { // يكرر التنبيه لمدت طويلة
+                gainNode.gain.setValueAtTime(0.1, now + (i * 0.8));
+                gainNode.gain.setValueAtTime(0, now + (i * 0.8) + 0.4);
+            }
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+        }
+
+        // دالة إيقاف الصوت
+        function stopAlertSound() {
+            if (oscillator) {
+                oscillator.stop();
+                isAlerting = false;
+                document.getElementById('stop-sound-btn').style.display = 'none';
+            }
+        }
+
+        function sendToHall(bioId, count) {
+            localStorage.setItem(`bio${bioId}`, count);
+            localStorage.setItem('lastUpdate', Date.now()); // لتنبيه التبويبات الأخرى
+            alert("تم إرسال العدد: " + count);
+        }
+
+        function updateDisplay() {
+            const b1 = localStorage.getItem('bio1') || '0';
+            const b2 = localStorage.getItem('bio2') || '0';
+            const el1 = document.getElementById('res-lab1');
+            const el2 = document.getElementById('res-lab2');
+
+            let changed = false;
+
+            if(el1.innerText !== b1) {
+                el1.innerText = b1;
+                document.getElementById('card1').classList.add('update-flash');
+                setTimeout(() => document.getElementById('card1').classList.remove('update-flash'), 600);
+                changed = true;
+            }
+
+            if(el2.innerText !== b2) {
+                el2.innerText = b2;
+                document.getElementById('card2').classList.add('update-flash');
+                setTimeout(() => document.getElementById('card2').classList.remove('update-flash'), 600);
+                changed = true;
+            }
+
+            if (changed) startAlertSound();
+        }
+
+        // مراقبة التغييرات
+        setInterval(() => {
+            if(document.getElementById('hall-ui').classList.contains('active')) {
+                updateDisplay();
+            }
+        }, 800);
+
+        window.addEventListener('storage', (e) => {
+            if(e.key === 'lastUpdate' || e.key === 'bio1' || e.key === 'bio2') {
+                updateDisplay();
+            }
+        });
+
+        // السماح بالصوت عند أول ضغطة في الصفحة
+        document.body.addEventListener('click', function() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }, {once: true});
+    </script>
+</body>
+</html>
