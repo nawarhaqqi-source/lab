@@ -3,6 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام إدارة الصالة الموحد - كابتن</title>
+    <style>
+        :root {
+            --lab1-color: #3498db;
+            --lab2-color: #9b59b6;
+            --bg-color: #f4f7f6;
+        }
+
+        * { -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            margin: 0; 
+            background: var(--bg-color); 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh;
+        }
+
+        /* حاوية العرض والشاشات */
+        .header-section {
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 10px;
+        }
+
+        .display-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .display-card {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 12px;
+            border-top: 8px solid #ddd;
+            background: #fdfdfd;
+        }
+
+        .val { font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 900; line-height: 1; margin: 5px 0; }
+        .card-lab1 { border-top-color: var(--lab1-color); }
+        .card-lab2 { border-top-color: var(--lab2-color); }
+
+        /* أزرار اختيار الصالة */
+        .tab-switcher {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #fff;
+            background: #bdc3c7;
+        }
+
+        .tab-btn.active-lab1 { background: var(--lab1-color); box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
+        .tab-btn.active-lab2 { background: var(--lab2-color); box-shadow: 0 4px 10px rgba(155, 89, 182, 0.3); }
+
+        /* منطقة الأرقام */
+        .numbers-container {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: none; /* مخفي افتراضياً */
+        }
+
+        .numbers-container.active { display: block; }
+
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); 
+            gap: 10px; 
+        }
+
+        .btn-number { 
+            padding: 20px 5px; 
+            font-size: 1.4rem; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border-radius: 12px; 
+            border: 1px solid #eee; 
+            background: #fff; 
+            transition: 0.1s;
+        }
+
+        .btn-number:active { transform: scale(0.9); background: #eee; }
+
+        #stop-sound-btn { 
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            padding: 15px 30px; background: #e74c3c; color: white; border: none;
+            border-radius: 50px; font-size: 1.1rem; display: none; z-index: 1000;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: repeat(4, 1fr); }
+            .val { font-size: 3.5rem; }
+        }
+
+        .update-flash { animation: flash 0.6s ease-out; }
+        @keyframes flash { 50% { background: #fff9c4; transform: scale(1.05); } }
+    </style>
+</head>
+<body>
+
+    <div class="header-section">
+        <div class="display-container">
+            <div id="card1" class="display-card card-lab1">
+                <small style="color:var(--lab1-color)">صالة 1</small>
+                <div id="res-lab1" class="val" style="color: var(--lab1-color)">0</div>
+            </div>
+            <div id="card2" class="display-card card-lab2">
+                <small style="color:var(--lab2-color)">صالة 2</small>
+                <div id="res-lab2" class="val" style="color: var(--lab2-color)">0</div>
+            </div>
+        </div>
+
+        <div class="tab-switcher">
+            <button id="btn-tab1" class="tab-btn" onclick="switchLab(1)">أرقام صالة 1</button>
+            <button id="btn-tab2" class="tab-btn" onclick="switchLab(2)">أرقام صالة 2</button>
+        </div>
+    </div>
+
+    <div id="panel-lab1" class="numbers-container">
+        <div class="grid">
+            <script>
+                for(let i=0; i<=100; i++) {
+                    document.write(`<button class="btn-number" style="color:var(--lab1-color)" onclick="sendToHall(1, ${i})">${i}</button>`);
+                }
+            </script>
+        </div>
+    </div>
+
+    <div id="panel-lab2" class="numbers-container">
+        <div class="grid">
+            <script>
+                for(let i=0; i<=100; i++) {
+                    document.write(`<button class="btn-number" style="color:var(--lab2-color)" onclick="sendToHall(2, ${i})">${i}</button>`);
+                }
+            </script>
+        </div>
+    </div>
+
+    <button id="stop-sound-btn" onclick="stopAlertSound()">إيقاف التنبيه 🔊</button>
+
+    <script>
+        let audioCtx = null;
+        let oscillator = null;
+        let isAlerting = false;
+
+        function switchLab(labNum) {
+            // إخفاء كافة اللوحات وإزالة الألوان النشطة من الأزرار
+            document.querySelectorAll('.numbers-container').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active-lab1', 'active-lab2');
+            });
+
+            // إظهار اللوحة المختارة وتلوين زرها
+            document.getElementById('panel-lab' + labNum).classList.add('active');
+            const activeBtn = document.getElementById('btn-tab' + labNum);
+            activeBtn.classList.add(labNum === 1 ? 'active-lab1' : 'active-lab2');
+        }
+
+        function startAlertSound() {
+            if (isAlerting) return;
+            isAlerting = true;
+            document.getElementById('stop-sound-btn').style.display = 'block';
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            setTimeout(() => stopAlertSound(), 1500);
+        }
+
+        function stopAlertSound() {
+            if (oscillator) { try { oscillator.stop(); } catch(e) {} oscillator = null; }
+            isAlerting = false;
+            document.getElementById('stop-sound-btn').style.display = 'none';
+        }
+
+        function sendToHall(bioId, count) {
+            const formData = new FormData();
+            formData.append('id', bioId);
+            formData.append('val', count);
+            fetch('data.php', { method: 'POST', body: formData })
+            .then(() => { if (navigator.vibrate) navigator.vibrate(50); });
+        }
+
+        function updateDisplay() {
+            fetch('data.php?t=' + Date.now())
+            .then(res => res.json())
+            .then(data => {
+                const el1 = document.getElementById('res-lab1');
+                const el2 = document.getElementById('res-lab2');
+                const card1 = document.getElementById('card1');
+                const card2 = document.getElementById('card2');
+                let c1 = false, c2 = false;
+
+                if(el1.innerText.trim() !== data.bio1.toString().trim()) { el1.innerText = data.bio1; c1 = true; }
+                if(el2.innerText.trim() !== data.bio2.toString().trim()) { el2.innerText = data.bio2; c2 = true; }
+
+                if (c1 || c2) {
+                    startAlertSound();
+                    if(c1) card1.classList.add('update-flash');
+                    if(c2) card2.classList.add('update-flash');
+                    setTimeout(() => {
+                        card1.classList.remove('update-flash');
+                        card2.classList.remove('update-flash');
+                    }, 600);
+                }
+            });
+        }
+
+        setInterval(updateDisplay, 1000);
+
+        // تفعيل الصوت
+        document.body.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }, {once: true});
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>نظام إدارة الصالة الموحد</title>
     <style>
         :root {
