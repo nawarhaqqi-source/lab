@@ -3,6 +3,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الصالة الاحترافي - كابتن</title>
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary-bg: #f8fafc;
+            --sidebar-bg: #1e293b;
+            --lab1-color: #0ea5e9;
+            --lab2-color: #a855f7;
+            --accent: #10b981;
+            --text-main: #0f172a;
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background: var(--primary-bg); 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+            color: var(--text-main);
+        }
+
+        /* --- Sidebar Pro --- */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: var(--sidebar-bg); 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            z-index: 100; 
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header { 
+            padding: 30px 20px; 
+            text-align: center; 
+            background: rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header h2 { font-size: 1.3rem; letter-spacing: 1px; font-weight: 800; }
+
+        .sidebar-btn { 
+            background: none; border: none; color: #94a3b8; 
+            padding: 20px 25px; text-align: right; cursor: pointer; 
+            width: 100%; transition: 0.3s; font-size: 1.05rem; 
+            display: flex; align-items: center; gap: 12px;
+            border-left: 4px solid transparent;
+        }
+
+        .sidebar-btn:hover { background: rgba(255,255,255,0.05); color: white; }
+        .sidebar-btn.active { 
+            background: rgba(255,255,255,0.1); 
+            color: white; 
+            border-left: 4px solid var(--accent);
+            font-weight: bold;
+        }
+
+        /* --- Main Content --- */
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; }
+        .page-section { display: none; width: 100%; max-width: 1200px; margin: 0 auto; animation: slideUp 0.5s ease; }
+        .page-section.active { display: block; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Input Cards Pro --- */
+        .lab-card { 
+            background: white; padding: 40px; border-radius: 24px; 
+            box-shadow: var(--card-shadow); text-align: center;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .manual-input-container { max-width: 400px; margin: 30px auto 0; }
+        
+        .input-manual { 
+            width: 100%; padding: 20px; font-size: 3.5rem; text-align: center; 
+            border: 3px solid #e2e8f0; border-radius: 20px; outline: none; 
+            font-weight: 800; color: #1e293b; transition: 0.3s;
+            background: #f1f5f9;
+        }
+
+        .input-manual:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
+
+        .btn-send-manual { 
+            width: 100%; margin-top: 20px; padding: 20px; font-size: 1.4rem; 
+            font-weight: bold; color: white; border: none; border-radius: 20px; 
+            cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .btn-lab1 { background: linear-gradient(135deg, var(--lab1-color), #0284c7); }
+        .btn-lab2 { background: linear-gradient(135deg, var(--lab2-color), #9333ea); }
+        .btn-send-manual:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .btn-send-manual:active { transform: scale(0.98); }
+
+        /* --- Display Screen Pro --- */
+        .display-screen { display: flex; gap: 30px; justify-content: center; align-items: stretch; margin-top: 50px; }
+        
+        .counter-box { 
+            flex: 1; background: white; padding: 50px 20px; border-radius: 32px; 
+            text-align: center; box-shadow: var(--card-shadow);
+            position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .counter-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 12px; }
+        .box-lab1::before { background: var(--lab1-color); }
+        .box-lab2::before { background: var(--lab2-color); }
+
+        .counter-box label { font-size: 1.5rem; font-weight: 600; color: #64748b; text-transform: uppercase; }
+        .val { font-size: clamp(8rem, 15vw, 15rem); font-weight: 900; line-height: 1; margin: 20px 0; letter-spacing: -5px; }
+        
+        #stop-sound-btn { 
+            display: none; width: 100%; max-width: 400px; margin: 40px auto;
+            padding: 20px; background: #ef4444; color: white; font-size: 1.5rem; 
+            font-weight: bold; border: none; border-radius: 20px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 900px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; flex-direction: row; overflow-x: auto; }
+            .sidebar-header { display: none; }
+            .sidebar-btn { padding: 15px 20px; white-space: nowrap; border-left: none; border-bottom: 4px solid transparent; }
+            .sidebar-btn.active { border-bottom: 4px solid var(--accent); }
+            .main-content { padding: 20px; }
+            .display-screen { flex-direction: column; }
+            .val { font-size: 8rem; }
+        }
+
+        .update-flash { animation: pulseUpdate 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes pulseUpdate { 
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); background: #fefce8; }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🏥 نظام التحكم</h2>
+        </div>
+        <button class="sidebar-btn active" onclick="showPage('lab1-ui', this)">🧪 صالة بايلوجي 1</button>
+        <button class="sidebar-btn" onclick="showPage('lab2-ui', this)">🧪 صالة بايلوجي 2</button>
+        <button class="sidebar-btn" onclick="showPage('hall-ui', this)">🖥️ شاشة العرض</button>
+    </div>
+
+    <div class="main-content">
+        <div id="lab1-ui" class="page-section active">
+            <div class="lab-card">
+                <h2 style="color: var(--lab1-color); font-size: 2rem;">إدخال رقم الانتظار (1)</h2>
+                <div class="manual-input-container">
+                    <input type="number" id="manual-val-1" class="input-manual" placeholder="0" inputmode="numeric">
+                    <button class="btn-send-manual btn-lab1" onclick="sendToHallManual(1)">تحديث الشاشة الآن 🔔</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="lab2-ui" class="page-section">
+            <div class="lab-card">
+                <h2 style="color: var(--lab2-color); font-size: 2rem;">إدخال رقم الانتظار (2)</h2>
+                <div class="manual-input-container">
+                    <input type="number" id="manual-val-2" class="input-manual" placeholder="0" inputmode="numeric">
+                    <button class="btn-send-manual btn-lab2" onclick="sendToHallManual(2)">تحديث الشاشة الآن 🔔</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="hall-ui" class="page-section">
+            <div class="display-screen">
+                <div id="card1" class="counter-box box-lab1">
+                    <label>بايلوجي 1</label>
+                    <div id="res-lab1" class="val" style="color: var(--lab1-color)">0</div>
+                </div>
+                <div id="card2" class="counter-box box-lab2">
+                    <label>بايلوجي 2</label>
+                    <div id="res-lab2" class="val" style="color: var(--lab2-color)">0</div>
+                </div>
+            </div>
+            <button id="stop-sound-btn" onclick="stopAlertSound()">إيقاف صوت التنبيه 🔊</button>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let oscillator = null;
+        let isAlerting = false;
+
+        function showPage(id, btn) {
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function sendToHallManual(bioId) {
+            const inputField = document.getElementById('manual-val-' + bioId);
+            const count = inputField.value;
+            if (count === "") return;
+
+            const formData = new FormData();
+            formData.append('id', bioId);
+            formData.append('val', count);
+            
+            fetch('data.php', { method: 'POST', body: formData })
+            .then(() => { 
+                if (navigator.vibrate) navigator.vibrate(100);
+                inputField.value = ""; 
+                inputField.placeholder = count;
+            })
+            .catch(err => alert("عذراً، حدث خطأ في الاتصال بالسيرفر"));
+        }
+
+        function startAlertSound() {
+            if (isAlerting) return;
+            isAlerting = true;
+            document.getElementById('stop-sound-btn').style.display = 'block';
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            setTimeout(() => stopAlertSound(), 2000);
+        }
+
+        function stopAlertSound() {
+            if (oscillator) { try { oscillator.stop(); } catch(e) {} oscillator = null; }
+            isAlerting = false;
+            document.getElementById('stop-sound-btn').style.display = 'none';
+        }
+
+        function updateDisplay() {
+            fetch('data.php?t=' + Date.now())
+            .then(res => res.json())
+            .then(data => {
+                const el1 = document.getElementById('res-lab1');
+                const el2 = document.getElementById('res-lab2');
+                const c1 = document.getElementById('card1');
+                const c2 = document.getElementById('card2');
+                let changed = false;
+
+                if(el1.innerText.trim() !== data.bio1.toString().trim()) { 
+                    el1.innerText = data.bio1; 
+                    changed = true; 
+                    c1.classList.add('update-flash');
+                    setTimeout(() => c1.classList.remove('update-flash'), 800);
+                }
+                if(el2.innerText.trim() !== data.bio2.toString().trim()) { 
+                    el2.innerText = data.bio2; 
+                    changed = true; 
+                    c2.classList.add('update-flash');
+                    setTimeout(() => c2.classList.remove('update-flash'), 800);
+                }
+
+                if (changed && document.getElementById('hall-ui').classList.contains('active')) {
+                    startAlertSound();
+                }
+            })
+            .catch(() => console.log("Reconnecting..."));
+        }
+
+        setInterval(updateDisplay, 1000);
+
+        document.body.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }, {once: true});
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام إدارة الصالة </title>
     <style>
         :root {
