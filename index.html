@@ -81,7 +81,6 @@
 
         .lab-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
         
-        /* تصميم حقل الإدخال مع الأسهم */
         .grid { display: flex; gap: 10px; margin-top: 15px; align-items: center; justify-content: center; }
         .input-wrapper { display: flex; align-items: center; background: #eee; border-radius: 10px; overflow: hidden; }
         .manual-input { padding: 8px; font-size: 1.5rem; border: none; width: 70px; text-align: center; background: white; }
@@ -147,7 +146,7 @@
                 <div class="grid">
                     <div class="input-wrapper">
                         <button class="step-btn" onclick="stepInput('input-bio1', -1)">-</button>
-                        <input type="number" id="input-bio1" class="manual-input" value="0">
+                        <input type="number" id="input-bio1" class="manual-input" value="">
                         <button class="step-btn" onclick="stepInput('input-bio1', 1)">+</button>
                     </div>
                     <button class="btn-input" style="background: var(--lab1-color)" onclick="sendToHall(1, 'input-bio1')">ارسال</button>
@@ -161,7 +160,7 @@
                 <div class="grid">
                     <div class="input-wrapper">
                         <button class="step-btn" onclick="stepInput('input-bio2', -1)">-</button>
-                        <input type="number" id="input-bio2" class="manual-input" value="0">
+                        <input type="number" id="input-bio2" class="manual-input" value="">
                         <button class="step-btn" onclick="stepInput('input-bio2', 1)">+</button>
                     </div>
                     <button class="btn-input" style="background: var(--lab2-color)" onclick="sendToHall(2, 'input-bio2')">ارسال</button>
@@ -199,12 +198,11 @@
             }
         }
 
-        // وظيفة لزيادة أو تقليل الرقم
         function stepInput(inputId, amount) {
             const input = document.getElementById(inputId);
             let val = parseInt(input.value) || 0;
             val += amount;
-            if (val < 0) val = 0; // منع الأرقام السالبة
+            if (val < 0) val = 0;
             input.value = val;
         }
 
@@ -232,7 +230,7 @@
 
         function sendToHall(bioId, inputId) {
             const inputElement = document.getElementById(inputId);
-            const count = inputElement.value;
+            const count = inputElement.value || 0;
 
             const formData = new FormData();
             formData.append('id', bioId);
@@ -241,8 +239,8 @@
             fetch('data.php', { method: 'POST', body: formData })
             .then(() => { 
                 if (navigator.vibrate) navigator.vibrate(50);
-                // تصفير العداد بعد الإرسال الناجح
-                inputElement.value = 0;
+                // إرجاع الخانة فارغة بعد الإرسال
+                inputElement.value = "";
             })
             .catch(err => console.error("خطأ في الإرسال"));
         }
