@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة الصالة - كابتن</title>
+    <title>نظام إدارة الصالة</title>
     <style>
         :root {
             --sidebar-width: 260px;
@@ -21,17 +21,71 @@
         .sidebar-btn { background: none; border: none; color: #bdc3c7; padding: 18px 25px; text-align: right; cursor: pointer; width: 100%; transition: 0.3s; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .sidebar-btn:hover, .sidebar-btn.active { background: #34495e; color: white; border-right: 8px solid var(--accent-color); }
 
-        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; width: 100%; }
-        .page-section { display: none; animation: fadeIn 0.4s; }
+        .main-content { 
+            flex-grow: 1; 
+            padding: 20px; 
+            overflow-y: auto; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+        }
+
+        .mini-monitor {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+        .mini-card {
+            flex: 1;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .mini-val { font-size: 2rem; font-weight: bold; }
+
+        .quick-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            background: #ddd;
+            transition: 0.3s;
+        }
+        .nav-tab.active-1 { background: var(--lab1-color); color: white; }
+        .nav-tab.active-2 { background: var(--lab2-color); color: white; }
+
+        .page-section { 
+            display: none; 
+            animation: fadeIn 0.4s; 
+            width: 100%;
+            max-width: 600px; 
+        }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .lab-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(75px, 1fr)); gap: 12px; margin-top: 20px; }
-        .btn-input { padding: 25px 10px; font-size: 1.5rem; font-weight: bold; cursor: pointer; border-radius: 12px; border: 2px solid #eee; background: #fff; transition: 0.2s; }
-        .btn-input:active { background: #eee; transform: scale(0.95); }
+        .lab-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+        .grid { display: flex; gap: 15px; margin-top: 30px; align-items: center; justify-content: center; }
+        .manual-input { padding: 15px; font-size: 2rem; border-radius: 12px; border: 2px solid #eee; width: 120px; text-align: center; }
+        .btn-input { padding: 15px 30px; font-size: 1.4rem; font-weight: bold; cursor: pointer; border-radius: 12px; border: none; color: white; transition: 0.2s; }
+        .btn-input:active { transform: scale(0.95); }
 
-        .display-screen { display: flex; flex-direction: row; gap: 20px; justify-content: center; align-items: center; min-height: 60vh; }
+        .display-screen { display: flex; flex-direction: row; gap: 20px; justify-content: center; align-items: center; width: 100%; }
         .counter-box { flex: 1; background: white; padding: 30px; border-radius: 25px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 20px solid #ddd; }
         .box-lab1 { border-top-color: var(--lab1-color); }
         .box-lab2 { border-top-color: var(--lab2-color); }
@@ -46,6 +100,7 @@
             .sidebar-btn { padding: 15px; text-align: center; font-size: 0.9rem; border-bottom: none; border-left: 1px solid rgba(255,255,255,0.1); width: auto; flex-shrink: 0; }
             .display-screen { flex-direction: column; }
             .val { font-size: 10rem; }
+            .main-content { justify-content: flex-start; padding-top: 20px; }
         }
 
         .update-flash { animation: flash 0.6s ease-out; }
@@ -56,34 +111,54 @@
 
     <div class="sidebar">
         <h2>🏥 إدارة الصالة</h2>
-        <button class="sidebar-btn active" onclick="showPage('lab1-ui', this)">🧪 بايلوجي 1</button>
-        <button class="sidebar-btn" onclick="showPage('lab2-ui', this)">🧪 بايلوجي 2</button>
-        <button class="sidebar-btn" onclick="showPage('hall-ui', this)">🖥️ الشاشة</button>
+        <button id="side-btn-1" class="sidebar-btn active" onclick="showPage('lab1-ui', this)"> صالة 1</button>
+        <button id="side-btn-2" class="sidebar-btn" onclick="showPage('lab2-ui', this)"> صالة 2</button>
+        <button id="side-btn-hall" class="sidebar-btn" onclick="showPage('hall-ui', this)">🖥️ الشاشة</button>
     </div>
 
     <div class="main-content">
+        <div id="input-controls" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="mini-monitor">
+                <div class="mini-card" style="border-right: 5px solid var(--lab1-color)">
+                    <small>صالة 1</small>
+                    <div id="mini-res-1" class="mini-val" style="color: var(--lab1-color)">0</div>
+                </div>
+                <div class="mini-card" style="border-right: 5px solid var(--lab2-color)">
+                    <small>صالة 2</small>
+                    <div id="mini-res-2" class="mini-val" style="color: var(--lab2-color)">0</div>
+                </div>
+            </div>
+
+            <div class="quick-nav">
+                <button id="nav-1" class="nav-tab active-1" onclick="showPage('lab1-ui', document.getElementById('side-btn-1'))">صالة 1</button>
+                <button id="nav-2" class="nav-tab" onclick="showPage('lab2-ui', document.getElementById('side-btn-2'))">صالة 2</button>
+            </div>
+        </div>
+
         <div id="lab1-ui" class="page-section active">
             <div class="lab-card">
-                <h2 style="color: var(--lab1-color)">إدخال بايلوجي 1</h2>
+                <h2 style="color: var(--lab1-color)">صالة 1</h2>
                 <div class="grid">
-                    <script>for(let i=0; i<=10; i++) document.write(`<button class="btn-input" style="color:var(--lab1-color)" onclick="sendToHall(1, ${i})">${i}</button>`);</script>
+                    <input type="number" id="input-bio1" class="manual-input" placeholder="0">
+                    <button class="btn-input" style="background: var(--lab1-color)" onclick="sendToHall(1, document.getElementById('input-bio1').value)">ارسال</button>
                 </div>
             </div>
         </div>
 
         <div id="lab2-ui" class="page-section">
             <div class="lab-card">
-                <h2 style="color: var(--lab2-color)">إدخال بايلوجي 2</h2>
+                <h2 style="color: var(--lab2-color)">صالة 2</h2>
                 <div class="grid">
-                    <script>for(let i=0; i<=10; i++) document.write(`<button class="btn-input" style="color:var(--lab2-color)" onclick="sendToHall(2, ${i})">${i}</button>`);</script>
+                    <input type="number" id="input-bio2" class="manual-input" placeholder="0">
+                    <button class="btn-input" style="background: var(--lab2-color)" onclick="sendToHall(2, document.getElementById('input-bio2').value)">ارسال</button>
                 </div>
             </div>
         </div>
 
-        <div id="hall-ui" class="page-section">
+        <div id="hall-ui" class="page-section" style="max-width: 100%;">
             <div class="display-screen">
-                <div id="card1" class="counter-box box-lab1"><div>بايلوجي 1</div><div id="res-lab1" class="val" style="color: var(--lab1-color)">0</div></div>
-                <div id="card2" class="counter-box box-lab2"><div>بايلوجي 2</div><div id="res-lab2" class="val" style="color: var(--lab2-color)">0</div></div>
+                <div id="card1" class="counter-box box-lab1"><div>صالة 1</div><div id="res-lab1" class="val" style="color: var(--lab1-color)">0</div></div>
+                <div id="card2" class="counter-box box-lab2"><div>صالة 2</div><div id="res-lab2" class="val" style="color: var(--lab2-color)">0</div></div>
             </div>
             <button id="stop-sound-btn" onclick="stopAlertSound()">إيقاف التنبيه 🔊</button>
         </div>
@@ -99,6 +174,16 @@
             document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             btn.classList.add('active');
+
+            // إخفاء أو إظهار عناصر التحكم العلوية بناءً على الصفحة
+            const controls = document.getElementById('input-controls');
+            if (id === 'hall-ui') {
+                controls.style.display = 'none';
+            } else {
+                controls.style.display = 'flex';
+                document.getElementById('nav-1').classList.toggle('active-1', id === 'lab1-ui');
+                document.getElementById('nav-2').classList.toggle('active-2', id === 'lab2-ui');
+            }
         }
 
         function startAlertSound() {
@@ -134,16 +219,26 @@
         }
 
         function updateDisplay() {
-            // إضافة ميزة منع الكاش Date.now()
             fetch('data.php?t=' + Date.now())
             .then(res => res.json())
             .then(data => {
                 const el1 = document.getElementById('res-lab1');
                 const el2 = document.getElementById('res-lab2');
+                const mini1 = document.getElementById('mini-res-1');
+                const mini2 = document.getElementById('mini-res-2');
+                
                 let changed = false;
 
-                if(el1.innerText.trim() !== data.bio1.toString().trim()) { el1.innerText = data.bio1; changed = true; }
-                if(el2.innerText.trim() !== data.bio2.toString().trim()) { el2.innerText = data.bio2; changed = true; }
+                if(mini1.innerText.trim() !== data.bio1.toString().trim()) { 
+                    el1.innerText = data.bio1; 
+                    mini1.innerText = data.bio1;
+                    changed = true; 
+                }
+                if(mini2.innerText.trim() !== data.bio2.toString().trim()) { 
+                    el2.innerText = data.bio2; 
+                    mini2.innerText = data.bio2;
+                    changed = true; 
+                }
 
                 if (changed && document.getElementById('hall-ui').classList.contains('active')) {
                     startAlertSound();
