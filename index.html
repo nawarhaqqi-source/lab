@@ -3,146 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام إدارة الصالة - كابتن</title>
+    <title>نظام إدارة الصالة الموحد</title>
     <style>
         :root {
-            --sidebar-width: 260px;
-            --primary-color: #2c3e50;
             --lab1-color: #3498db;
             --lab2-color: #9b59b6;
-            --bg-color: #f0f2f5;
-            --accent-color: #1abc9c;
+            --bg-color: #f8f9fa;
         }
 
-        /* منع التحديد واللمس الطويل على الأيفون */
         * { -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
 
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-color); overflow: hidden; flex-direction: row; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            margin: 0; 
+            background: var(--bg-color); 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh;
+        }
 
-        .sidebar { width: var(--sidebar-width); background: var(--primary-color); color: white; display: flex; flex-direction: column; padding: 20px 0; box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 100; }
-        .sidebar h2 { text-align: center; font-size: 1.2rem; border-bottom: 1px solid #444; padding-bottom: 20px; margin-bottom: 10px; }
-        .sidebar-btn { background: none; border: none; color: #bdc3c7; padding: 18px 25px; text-align: right; cursor: pointer; width: 100%; transition: 0.3s; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .sidebar-btn:hover, .sidebar-btn.active { background: #34495e; color: white; border-right: 8px solid var(--accent-color); }
+        /* حاوية العرض العلوية (الشاشات) */
+        .header-display {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-        .main-content { flex-grow: 1; padding: 15px; overflow-y: auto; width: 100%; -webkit-overflow-scrolling: touch; }
-        .page-section { display: none; animation: fadeIn 0.4s; }
-        .page-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .display-card {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border-radius: 15px;
+            border-top: 10px solid #ddd;
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
 
-        .lab-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .display-card h3 { margin: 0; color: #7f8c8d; font-size: 1.1rem; }
+        .val { font-size: clamp(3rem, 10vw, 6rem); font-weight: 900; margin: 5px 0; transition: 0.3s; }
         
-        /* تحسين شبكة الأزرار للموبايل */
+        .card-lab1 { border-top-color: var(--lab1-color); }
+        .card-lab2 { border-top-color: var(--lab2-color); }
+
+        /* منطقة التحكم (الأزرار) */
+        .controls-container {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            flex-grow: 1;
+        }
+
+        .control-section {
+            flex: 1;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            text-align: center;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #f0f2f5;
+            font-weight: bold;
+        }
+
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); 
-            gap: 10px; 
-            margin-top: 15px; 
+            grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); 
+            gap: 8px; 
         }
 
         .btn-input { 
-            padding: 20px 5px; 
-            font-size: 1.3rem; 
+            padding: 15px 5px; 
+            font-size: 1.1rem; 
             font-weight: bold; 
             cursor: pointer; 
-            border-radius: 12px; 
-            border: 1px solid #ddd; 
-            background: #ffffff; 
-            transition: all 0.1s; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 10px; 
+            border: 1px solid #eee; 
+            background: #fdfdfd; 
+            transition: all 0.1s;
         }
 
-        /* تأثير الضغط المتوافق مع أيفون وسامسونج */
         .btn-input:active { 
-            background: #e0e0e0 !important; 
+            background: #eee !important; 
             transform: scale(0.92); 
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .display-screen { display: flex; flex-direction: row; gap: 20px; justify-content: center; align-items: center; min-height: 60vh; }
-        .counter-box { flex: 1; background: white; padding: 30px; border-radius: 25px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 20px solid #ddd; }
-        .box-lab1 { border-top-color: var(--lab1-color); }
-        .box-lab2 { border-top-color: var(--lab2-color); }
-        .val { font-size: clamp(5rem, 20vw, 15rem); font-weight: 900; line-height: 1; margin: 15px 0; }
-        
-        #stop-sound-btn { display: none; width: 100%; padding: 20px; background: #e74c3c; color: white; font-size: 1.8rem; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; margin-top: 25px; }
+        #stop-sound-btn { 
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
 
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; flex-direction: row; padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .sidebar h2 { display: none; }
-            .sidebar-btn { padding: 15px 20px; text-align: center; font-size: 1rem; border-bottom: none; border-left: 1px solid rgba(255,255,255,0.1); width: auto; flex-shrink: 0; }
-            .display-screen { flex-direction: column; }
-            .val { font-size: 8rem; }
-            .grid { grid-template-columns: repeat(4, 1fr); } /* 4 أزرار في الصف الواحد في الموبايل */
+        @media (max-width: 600px) {
+            .controls-container { flex-direction: column; }
+            .grid { grid-template-columns: repeat(5, 1fr); }
+            .val { font-size: 4rem; }
         }
 
         .update-flash { animation: flash 0.6s ease-out; }
-        @keyframes flash { 50% { background: #fff9c4; transform: scale(1.02); } }
+        @keyframes flash { 50% { background: #fff9c4; transform: scale(1.05); } }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>🏥 إدارة الصالة</h2>
-        <button class="sidebar-btn active" onclick="showPage('lab1-ui', this)">صالة 1</button>
-        <button class="sidebar-btn" onclick="showPage('lab2-ui', this)">صالة 2</button>
-        <button class="sidebar-btn" onclick="showPage('hall-ui', this)">🖥️ الشاشة</button>
-    </div>
-
-    <div class="main-content">
-        <div id="lab1-ui" class="page-section active">
-            <div class="lab-card">
-                <h2 style="color: var(--lab1-color)">إرسال رقم لـ صالة 1</h2>
-                <div class="grid">
-                    <script>
-                        for(let i=0; i<=100; i++) {
-                            document.write(`<button class="btn-input" style="color:var(--lab1-color)" onclick="sendToHall(1, ${i})">${i}</button>`);
-                        }
-                    </script>
-                </div>
-            </div>
+    <div class="header-display">
+        <div id="display1" class="display-card card-lab1">
+            <h3>صالة 1</h3>
+            <div id="res-lab1" class="val" style="color: var(--lab1-color)">0</div>
         </div>
-
-        <div id="lab2-ui" class="page-section">
-            <div class="lab-card">
-                <h2 style="color: var(--lab2-color)">إرسال رقم لـ صالة 2</h2>
-                <div class="grid">
-                    <script>
-                        for(let i=0; i<=100; i++) {
-                            document.write(`<button class="btn-input" style="color:var(--lab2-color)" onclick="sendToHall(2, ${i})">${i}</button>`);
-                        }
-                    </script>
-                </div>
-            </div>
-        </div>
-
-        <div id="hall-ui" class="page-section">
-            <div class="display-screen">
-                <div id="card1" class="counter-box box-lab1">
-                    <div style="font-size: 1.5rem; color: #7f8c8d;">صالة 1</div>
-                    <div id="res-lab1" class="val" style="color: var(--lab1-color)">0</div>
-                </div>
-                <div id="card2" class="counter-box box-lab2">
-                    <div style="font-size: 1.5rem; color: #7f8c8d;">صالة 2</div>
-                    <div id="res-lab2" class="val" style="color: var(--lab2-color)">0</div>
-                </div>
-            </div>
-            <button id="stop-sound-btn" onclick="stopAlertSound()">إيقاف التنبيه 🔊</button>
+        <div id="display2" class="display-card card-lab2">
+            <h3>صالة 2</h3>
+            <div id="res-lab2" class="val" style="color: var(--lab2-color)">0</div>
         </div>
     </div>
+
+    <div class="controls-container">
+        <div class="control-section">
+            <div class="section-title" style="color: var(--lab1-color)">لوحة صالة 1</div>
+            <div class="grid">
+                <script>
+                    for(let i=0; i<=100; i++) {
+                        document.write(`<button class="btn-input" style="color:var(--lab1-color)" onclick="sendToHall(1, ${i})">${i}</button>`);
+                    }
+                </script>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <div class="section-title" style="color: var(--lab2-color)">لوحة صالة 2</div>
+            <div class="grid">
+                <script>
+                    for(let i=0; i<=100; i++) {
+                        document.write(`<button class="btn-input" style="color:var(--lab2-color)" onclick="sendToHall(2, ${i})">${i}</button>`);
+                    }
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <button id="stop-sound-btn" onclick="stopAlertSound()">إيقاف التنبيه 🔊</button>
 
     <script>
         let audioCtx = null;
         let oscillator = null;
         let isAlerting = false;
-
-        function showPage(id, btn) {
-            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            btn.classList.add('active');
-            window.scrollTo(0,0);
-        }
 
         function startAlertSound() {
             if (isAlerting) return;
@@ -172,11 +195,8 @@
             formData.append('val', count);
             
             fetch('data.php', { method: 'POST', body: formData })
-            .then(() => { 
-                // اهتزاز خفيف للتأكيد (يعمل على سامسونج وأندرويد)
-                if (navigator.vibrate) navigator.vibrate(50); 
-            })
-            .catch(err => console.error("خطأ في الاتصال"));
+            .then(() => { if (navigator.vibrate) navigator.vibrate(50); })
+            .catch(err => console.error("Error sending data"));
         }
 
         function updateDisplay() {
@@ -185,23 +205,37 @@
             .then(data => {
                 const el1 = document.getElementById('res-lab1');
                 const el2 = document.getElementById('res-lab2');
-                let changed = false;
+                const card1 = document.getElementById('display1');
+                const card2 = document.getElementById('display2');
+                let changed1 = false;
+                let changed2 = false;
 
-                if(el1.innerText.trim() !== data.bio1.toString().trim()) { el1.innerText = data.bio1; changed = true; }
-                if(el2.innerText.trim() !== data.bio2.toString().trim()) { el2.innerText = data.bio2; changed = true; }
+                if(el1.innerText.trim() !== data.bio1.toString().trim()) { 
+                    el1.innerText = data.bio1; 
+                    changed1 = true; 
+                }
+                if(el2.innerText.trim() !== data.bio2.toString().trim()) { 
+                    el2.innerText = data.bio2; 
+                    changed2 = true; 
+                }
 
-                if (changed && document.getElementById('hall-ui').classList.contains('active')) {
+                if (changed1 || changed2) {
                     startAlertSound();
-                    document.querySelectorAll('.counter-box').forEach(b => b.classList.add('update-flash'));
-                    setTimeout(() => document.querySelectorAll('.counter-box').forEach(b => b.classList.remove('update-flash')), 600);
+                    if(changed1) card1.classList.add('update-flash');
+                    if(changed2) card2.classList.add('update-flash');
+                    
+                    setTimeout(() => {
+                        card1.classList.remove('update-flash');
+                        card2.classList.remove('update-flash');
+                    }, 600);
                 }
             })
-            .catch(err => console.log("جاري التحديث..."));
+            .catch(err => console.log("Connection lost..."));
         }
 
         setInterval(updateDisplay, 1000);
 
-        // تفعيل الصوت في المتصفحات بعد أول تفاعل
+        // تفعيل الصوت عند اللمس الأول
         document.body.addEventListener('touchstart', () => {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }, {once: true});
