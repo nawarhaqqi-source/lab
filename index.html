@@ -3,6 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام إدارة الصالة </title>
+    <style>
+        :root {
+            --lab1-color: #3498db;
+            --lab2-color: #9b59b6;
+            --bg-color: #f0f2f5;
+            --success-color: #2ecc71;
+        }
+
+        /* تحسينات عامة للهواتف */
+        * { -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; touch-action: manipulation; }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            margin: 0; 
+            background: var(--bg-color); 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh;
+            overflow: hidden; /* يمنع التمرير المزعج في الموبايل */
+        }
+
+        /* شاشات العرض العلوية */
+        .top-display {
+            background: #fff;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .mini-card {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 10px;
+            background: #f9f9f9;
+            border-bottom: 4px solid #ddd;
+            transition: 0.3s;
+        }
+
+        .mini-card small { display: block; font-size: 0.75rem; color: #7f8c8d; margin-bottom: 2px; }
+        .mini-val { font-size: 2rem; font-weight: 900; line-height: 1; }
+        
+        .active-1 { border-bottom-color: var(--lab1-color) !important; background: #ebf5fb; }
+        .active-2 { border-bottom-color: var(--lab2-color) !important; background: #f5eef8; }
+
+        /* منطقة الاختيار */
+        .selection-area { padding: 10px; display: flex; gap: 10px; }
+        .selector-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            background: white;
+            transition: 0.2s;
+        }
+        .btn-1.active { background: var(--lab1-color); color: white; border-color: var(--lab1-color); }
+        .btn-2.active { background: var(--lab2-color); color: white; border-color: var(--lab2-color); }
+
+        /* نافذة الإدخال المركزية */
+        .input-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .input-box {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        #num-input {
+            width: 100%;
+            font-size: 3.5rem;
+            text-align: center;
+            padding: 10px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            color: #2c3e50;
+            font-weight: bold;
+            margin-bottom: 20px;
+            outline: none;
+            background: #fff;
+        }
+
+        .send-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+            background: var(--success-color);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+        }
+
+        .send-btn:active { transform: scale(0.96); opacity: 0.9; }
+
+        /* وميض التحديث */
+        .flash-update { animation: flash-key 0.6s ease-out; }
+        @keyframes flash-key { 50% { background: #fff9c4; } }
+
+        /* التوافق مع الشاشات الصغيرة جداً */
+        @media (max-height: 500px) {
+            .mini-val { font-size: 1.5rem; }
+            #num-input { font-size: 2.5rem; margin-bottom: 10px; }
+            .input-box { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-display">
+        <div id="card-1" class="mini-card active-1">
+            <small>صالة 1</small>
+            <div id="res-1" class="mini-val" style="color: var(--lab1-color)">0</div>
+        </div>
+        <div id="card-2" class="mini-card active-2">
+            <small>صالة 2</small>
+            <div id="res-2" class="mini-val" style="color: var(--lab2-color)">0</div>
+        </div>
+    </div>
+
+    <div class="selection-area">
+        <button id="sel-1" class="selector-btn btn-1 active" onclick="setLab(1)">صالة 1</button>
+        <button id="sel-2" class="selector-btn btn-2" onclick="setLab(2)">صالة 2</button>
+    </div>
+
+    <div class="input-container">
+        <div class="input-box">
+            <div id="lab-label" style="margin-bottom:10px; font-weight:bold; color:var(--lab1-color)">يرجى إدخال رقم صالة 1</div>
+            <input type="number" id="num-input" placeholder="0" inputmode="numeric" pattern="[0-9]*">
+            <button class="send-btn" onclick="sendData()">إرسال الآن </button>
+        </div>
+    </div>
+
+    <script>
+        let currentLab = 1;
+        let audioCtx = null;
+
+        // دالة نغمة التنبيه (تعمل لمدة ثانية واحدة)
+        function playBeep() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // نغمة حادة وواضحة
+                
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1); // تنتهي خلال ثانية
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1); // التنبيه لمدة ثانية واحدة
+            } catch(e) { console.log("Audio Error"); }
+        }
+
+        function setLab(num) {
+            currentLab = num;
+            document.getElementById('sel-1').classList.toggle('active', num === 1);
+            document.getElementById('sel-2').classList.toggle('active', num === 2);
+            const label = document.getElementById('lab-label');
+            label.innerText = "يرجى إدخال رقم صالة " + num;
+            label.style.color = num === 1 ? 'var(--lab1-color)' : 'var(--lab2-color)';
+            document.getElementById('num-input').focus();
+        }
+
+        function sendData() {
+            const input = document.getElementById('num-input');
+            const val = input.value;
+
+            if (val === "") return;
+
+            const formData = new FormData();
+            formData.append('id', currentLab);
+            formData.append('val', val);
+
+            fetch('data.php', { method: 'POST', body: formData })
+            .then(() => {
+                playBeep(); // تفعيل التنبيه عند نجاح الإرسال
+                if (navigator.vibrate) navigator.vibrate(100); // اهتزاز خفيف للموبايل
+                input.value = ""; // مسح الحقل
+                input.placeholder = val; // عرض آخر رقم تم إرساله
+            });
+        }
+
+        function sync() {
+            fetch('data.php?t=' + Date.now())
+            .then(r => r.json())
+            .then(data => {
+                const r1 = document.getElementById('res-1');
+                const r2 = document.getElementById('res-2');
+                
+                if(r1.innerText != data.bio1) {
+                    r1.innerText = data.bio1;
+                    document.getElementById('card-1').classList.add('flash-update');
+                    setTimeout(() => document.getElementById('card-1').classList.remove('flash-update'), 600);
+                }
+                if(r2.innerText != data.bio2) {
+                    r2.innerText = data.bio2;
+                    document.getElementById('card-2').classList.add('flash-update');
+                    setTimeout(() => document.getElementById('card-2').classList.remove('flash-update'), 600);
+                }
+            });
+        }
+
+        setInterval(sync, 1000);
+
+        // تفعيل نظام الصوت عند أول لمسة (ضروري للأيفون)
+        document.addEventListener('touchstart', function() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }, { once: true });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>نظام إدارة الصالة الموحد - كابتن</title>
     <style>
         :root {
