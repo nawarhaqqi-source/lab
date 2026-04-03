@@ -3,284 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة الصالة</title>
+    <title>محلل الأجنة الاحترافي | Gemini 2.5</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --sidebar-width: 260px;
-            --primary-color: #2c3e50;
-            --lab1-color: #3498db;
-            --lab2-color: #9b59b6;
-            --bg-color: #f0f2f5;
-            --accent-color: #1abc9c;
-        }
-
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-color); overflow: hidden; flex-direction: row; }
-
-        .sidebar { width: var(--sidebar-width); background: var(--primary-color); color: white; display: flex; flex-direction: column; padding: 20px 0; box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 100; }
-        .sidebar h2 { text-align: center; font-size: 1.2rem; border-bottom: 1px solid #444; padding-bottom: 20px; margin-bottom: 10px; }
-        .sidebar-btn { background: none; border: none; color: #bdc3c7; padding: 18px 25px; text-align: right; cursor: pointer; width: 100%; transition: 0.3s; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .sidebar-btn:hover, .sidebar-btn.active { background: #34495e; color: white; border-right: 8px solid var(--accent-color); }
-
-        .main-content { 
-            flex-grow: 1; 
-            padding: 20px; 
-            overflow-y: auto; 
-            width: 100%; 
-            display: flex; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center; 
-        }
-
-        .mini-monitor {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            width: 100%;
-            max-width: 400px;
-        }
-        .mini-card {
-            flex: 1;
-            background: white;
-            padding: 5px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .mini-val { font-size: 1.2rem; font-weight: bold; }
-
-        .quick-nav {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            width: 100%;
-            max-width: 400px;
-        }
-        .nav-tab {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9rem;
-            background: #ddd;
-            transition: 0.3s;
-        }
-        .nav-tab.active-1 { background: var(--lab1-color); color: white; }
-        .nav-tab.active-2 { background: var(--lab2-color); color: white; }
-
-        .page-section { 
-            display: none; 
-            animation: fadeIn 0.4s; 
-            width: 100%;
-            max-width: 400px; 
-        }
-        .page-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .lab-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
-        
-        .grid { display: flex; gap: 10px; margin-top: 15px; align-items: center; justify-content: center; }
-        .input-wrapper { display: flex; align-items: center; background: #eee; border-radius: 10px; overflow: hidden; }
-        .manual-input { padding: 8px; font-size: 1.5rem; border: none; width: 70px; text-align: center; background: white; }
-        .step-btn { background: #ddd; border: none; padding: 10px 15px; cursor: pointer; font-weight: bold; font-size: 1.2rem; transition: 0.2s; }
-        .step-btn:hover { background: #ccc; }
-        
-        .btn-input { padding: 10px 20px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border-radius: 10px; border: none; color: white; transition: 0.2s; }
-        .btn-input:active { transform: scale(0.95); }
-
-        .display-screen { display: flex; flex-direction: row; gap: 20px; justify-content: center; align-items: center; width: 100%; }
-        .counter-box { flex: 1; background: white; padding: 30px; border-radius: 25px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 20px solid #ddd; }
-        .box-lab1 { border-top-color: var(--lab1-color); }
-        .box-lab2 { border-top-color: var(--lab2-color); }
-        .val { font-size: clamp(6rem, 20vw, 18rem); font-weight: 900; line-height: 1; margin: 15px 0; }
-        
-        #stop-sound-btn { display: none; width: 100%; padding: 20px; background: #e74c3c; color: white; font-size: 1.8rem; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; margin-top: 25px; }
-
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; flex-direction: row; padding: 0; overflow-x: auto; }
-            .sidebar h2 { display: none; }
-            .sidebar-btn { padding: 15px; text-align: center; font-size: 0.9rem; border-bottom: none; border-left: 1px solid rgba(255,255,255,0.1); width: auto; flex-shrink: 0; }
-            .display-screen { flex-direction: column; }
-            .val { font-size: 10rem; }
-            .main-content { justify-content: flex-start; padding-top: 20px; }
-        }
-
-        .update-flash { animation: flash 0.6s ease-out; }
-        @keyframes flash { 50% { background: #fff9c4; transform: scale(1.02); } }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+        body { font-family: 'Tajawal', sans-serif; background-color: #f0f4f8; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+        .loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="sidebar">
-        <h2>🏥 إدارة الصالة</h2>
-        <button id="side-btn-1" class="sidebar-btn active" onclick="showPage('lab1-ui', this)"> صالة 1</button>
-        <button id="side-btn-2" class="sidebar-btn" onclick="showPage('lab2-ui', this)"> صالة 2</button>
-        <button id="side-btn-hall" class="sidebar-btn" onclick="showPage('hall-ui', this)">🖥️ الشاشة</button>
-    </div>
-
-    <div class="main-content">
-        <div id="input-controls" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-            <div class="mini-monitor">
-                <div class="mini-card" style="border-right: 5px solid var(--lab1-color)">
-                    <small>صالة 1</small>
-                    <div id="mini-res-1" class="mini-val" style="color: var(--lab1-color)">0</div>
-                </div>
-                <div class="mini-card" style="border-right: 5px solid var(--lab2-color)">
-                    <small>صالة 2</small>
-                    <div id="mini-res-2" class="mini-val" style="color: var(--lab2-color)">0</div>
-                </div>
+    <div class="max-w-2xl w-full glass rounded-[2rem] shadow-2xl p-8 md:p-12 transition-all">
+        <div class="text-center mb-10">
+            <div class="inline-block p-4 bg-blue-50 rounded-full mb-4">
+                <i class="fas fa-microscope text-4xl text-blue-600"></i>
             </div>
-
-            <div class="quick-nav">
-                <button id="nav-1" class="nav-tab active-1" onclick="showPage('lab1-ui', document.getElementById('side-btn-1'))">صالة 1</button>
-                <button id="nav-2" class="nav-tab" onclick="showPage('lab2-ui', document.getElementById('side-btn-2'))">صالة 2</button>
-            </div>
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">محلل الأجنة الذكي</h1>
+            <span class="px-4 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">Engine: Gemini 2.5 Flash (v1beta)</span>
         </div>
 
-        <div id="lab1-ui" class="page-section active">
-            <div class="lab-card">
-                <h3 style="color: var(--lab1-color); margin: 0;">صالة 1</h3>
-                <div class="grid">
-                    <div class="input-wrapper">
-                        <button class="step-btn" onclick="stepInput('input-bio1', -1)">-</button>
-                        <input type="number" id="input-bio1" class="manual-input" value="">
-                        <button class="step-btn" onclick="stepInput('input-bio1', 1)">+</button>
-                    </div>
-                    <button class="btn-input" style="background: var(--lab1-color)" onclick="sendToHall(1, 'input-bio1')">ارسال</button>
-                </div>
+        <div id="dropzone" onclick="document.getElementById('fileInput').click()" 
+             class="border-4 border-dashed border-slate-200 rounded-3xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all mb-8">
+            <input type="file" id="fileInput" accept=".bmp,image/*" class="hidden" onchange="handleFile(this)">
+            <div id="uploadUI">
+                <i class="fas fa-cloud-upload-alt text-5xl text-slate-400 mb-4"></i>
+                <p class="text-slate-600 font-bold text-lg">اسحب صورة الجنين هنا أو اضغط للرفع</p>
+                <p class="text-slate-400 text-sm mt-2">يدعم بشكل كامل صيغ BMP, JPG, PNG</p>
             </div>
+            <img id="imagePreview" src="#" class="hidden max-h-64 mx-auto rounded-2xl shadow-lg border-2 border-white">
         </div>
 
-        <div id="lab2-ui" class="page-section">
-            <div class="lab-card">
-                <h3 style="color: var(--lab2-color); margin: 0;">صالة 2</h3>
-                <div class="grid">
-                    <div class="input-wrapper">
-                        <button class="step-btn" onclick="stepInput('input-bio2', -1)">-</button>
-                        <input type="number" id="input-bio2" class="manual-input" value="">
-                        <button class="step-btn" onclick="stepInput('input-bio2', 1)">+</button>
-                    </div>
-                    <button class="btn-input" style="background: var(--lab2-color)" onclick="sendToHall(2, 'input-bio2')">ارسال</button>
-                </div>
-            </div>
+        <button id="analyzeBtn" onclick="runAnalysis()" disabled
+                class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-5 rounded-2xl text-xl shadow-lg transition-all active:scale-95 flex justify-center items-center gap-3">
+            <i class="fas fa-wand-magic-sparkles"></i>
+            <span>بدء التحليل المخبري</span>
+        </button>
+
+        <div id="loadingBox" class="hidden mt-10 text-center">
+            <div class="loader w-12 h-12 border-4 border-slate-200 rounded-full mx-auto mb-4"></div>
+            <p class="text-blue-600 font-bold animate-pulse">جاري فحص الجنين عبر محرك 2.5...</p>
         </div>
 
-        <div id="hall-ui" class="page-section" style="max-width: 100%;">
-            <div class="display-screen">
-                <div id="card1" class="counter-box box-lab1"><div>صالة 1</div><div id="res-lab1" class="val" style="color: var(--lab1-color)">0</div></div>
-                <div id="card2" class="counter-box box-lab2"><div>صالة 2</div><div id="res-lab2" class="val" style="color: var(--lab2-color)">0</div></div>
-            </div>
-            <button id="stop-sound-btn" onclick="stopAlertSound()">إيقاف التنبيه 🔊</button>
+        <div id="resultBox" class="hidden mt-10 p-6 bg-slate-50 rounded-2xl border-r-8 border-blue-500 shadow-inner">
+            <h3 class="text-blue-800 font-bold mb-4 flex items-center gap-2">
+                <i class="fas fa-clipboard-check"></i> تقرير المختبر الرقمي:
+            </h3>
+            <div id="resultContent" class="text-slate-700 leading-relaxed text-right whitespace-pre-wrap"></div>
         </div>
     </div>
 
     <script>
-        let audioCtx = null;
-        let oscillator = null;
-        let isAlerting = false;
+        // كابتن، تأكد من صحة المفتاح
+        const API_KEY = "AIzaSyAaA9oAdaQ98jlbHFy0RaqLqovMbteNoGc";
+        const MODEL = "gemini-2.5-flash"; 
 
-        function showPage(id, btn) {
-            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            btn.classList.add('active');
+        let base64Image = "";
+        let mimeType = "";
 
-            const controls = document.getElementById('input-controls');
-            if (id === 'hall-ui') {
-                controls.style.display = 'none';
-            } else {
-                controls.style.display = 'flex';
-                document.getElementById('nav-1').classList.toggle('active-1', id === 'lab1-ui');
-                document.getElementById('nav-2').classList.toggle('active-2', id === 'lab2-ui');
+        function handleFile(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                mimeType = file.type || "image/bmp"; // تخصيص يدوي للـ BMP إذا لم يتعرف عليه المتصفح
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                    document.getElementById('uploadUI').classList.add('hidden');
+                    document.getElementById('analyzeBtn').disabled = false;
+                    document.getElementById('resultBox').classList.add('hidden');
+                    base64Image = e.target.result.split(',')[1];
+                }
+                reader.readAsDataURL(file);
             }
         }
 
-        function stepInput(inputId, amount) {
-            const input = document.getElementById(inputId);
-            let val = parseInt(input.value) || 0;
-            val += amount;
-            if (val < 0) val = 0;
-            input.value = val;
-        }
+        async function runAnalysis() {
+            const btn = document.getElementById('analyzeBtn');
+            const loading = document.getElementById('loadingBox');
+            const resultBox = document.getElementById('resultBox');
+            const resultContent = document.getElementById('resultContent');
 
-        function startAlertSound() {
-            if (isAlerting) return;
-            isAlerting = true;
-            document.getElementById('stop-sound-btn').style.display = 'block';
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.start();
-            setTimeout(() => stopAlertSound(), 1500);
-        }
+            btn.disabled = true;
+            loading.classList.remove('hidden');
+            resultBox.classList.add('hidden');
 
-        function stopAlertSound() {
-            if (oscillator) { try { oscillator.stop(); } catch(e) {} oscillator = null; }
-            isAlerting = false;
-            document.getElementById('stop-sound-btn').style.display = 'none';
-        }
+            const prompt = `أنت خبير أجنة رقمي. حلل هذه الصورة بدقة مجهرية.
+            المطلوب تقرير مفصل باللغة العربية يتضمن:
+            1. مرحلة نمو الجنين.
+            2. جودة الخلايا والتناظر (Symmetry).
+            3. نسبة التكسر (Fragmentation).
+            4. تقييم نهائي للجودة (Grading).
+            إذا كانت الصورة غير واضحة أو ليست لجنين، اطلب صورة أوضح.`;
 
-        function sendToHall(bioId, inputId) {
-            const inputElement = document.getElementById(inputId);
-            const count = inputElement.value || 0;
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                { inline_data: { mime_type: mimeType, data: base64Image } }
+                            ]
+                        }]
+                    })
+                });
 
-            const formData = new FormData();
-            formData.append('id', bioId);
-            formData.append('val', count);
-            
-            fetch('data.php', { method: 'POST', body: formData })
-            .then(() => { 
-                if (navigator.vibrate) navigator.vibrate(50);
-                // إرجاع الخانة فارغة بعد الإرسال
-                inputElement.value = "";
-            })
-            .catch(err => console.error("خطأ في الإرسال"));
-        }
+                const data = await response.json();
 
-        function updateDisplay() {
-            fetch('data.php?t=' + Date.now())
-            .then(res => res.json())
-            .then(data => {
-                const el1 = document.getElementById('res-lab1');
-                const el2 = document.getElementById('res-lab2');
-                const mini1 = document.getElementById('mini-res-1');
-                const mini2 = document.getElementById('mini-res-2');
-                
-                let changed = false;
-
-                if(mini1.innerText.trim() !== data.bio1.toString().trim()) { 
-                    el1.innerText = data.bio1; 
-                    mini1.innerText = data.bio1;
-                    changed = true; 
-                }
-                if(mini2.innerText.trim() !== data.bio2.toString().trim()) { 
-                    el2.innerText = data.bio2; 
-                    mini2.innerText = data.bio2;
-                    changed = true; 
+                if (data.error) {
+                    throw new Error(`خطأ من السيرفر: ${data.error.message}`);
                 }
 
-                if (changed && document.getElementById('hall-ui').classList.contains('active')) {
-                    startAlertSound();
-                    document.querySelectorAll('.counter-box').forEach(b => b.classList.add('update-flash'));
-                    setTimeout(() => document.querySelectorAll('.counter-box').forEach(b => b.classList.remove('update-flash')), 600);
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    resultContent.innerText = data.candidates[0].content.parts[0].text;
+                    resultBox.classList.remove('hidden');
+                } else {
+                    throw new Error("لم يتمكن المحرك من قراءة الصورة، قد تكون الصيغة أو الحجم غير مدعوم.");
                 }
-            })
-            .catch(err => console.log("جاري الاتصال بالسيرفر..."));
+
+            } catch (error) {
+                alert("حدث خطأ تقني:\n" + error.message);
+                console.error(error);
+            } finally {
+                loading.classList.add('hidden');
+                btn.disabled = false;
+            }
         }
-
-        setInterval(updateDisplay, 1000);
-
-        document.body.addEventListener('click', () => {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }, {once: true});
     </script>
 </body>
 </html>
